@@ -1,1 +1,1 @@
-voiceEnable = False
+voiceEnable = True

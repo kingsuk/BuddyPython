@@ -5,6 +5,9 @@ import OutlookMeetings as OM
 import WriteToFile as WF
 import os
 import WriteFileHelper as WFH
+import GoogleSpeechToText as GSTT
+import OutlookCreateHelper as OCH
+
 
 reminderNativeAppPath = r"C:\Users\accenture.robotics\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\buddy.lnk"
 
@@ -132,9 +135,18 @@ def CreateEmail(output):
         if len(entities) > 0:
             print("Entitites")
         else:
-            print("Please provide the recipient of the email")
+            print("Please provide the recipient email")
+            winspeech.say_wait("Please provide the recipient email")
+            userInputMailId = GSTT.getSpeechToText()
+            recipient = OCH.CheckEmailMatch(userInputMailId)
+            print(recipient)
+            print("Please prove the Subject of the email")
+            winspeech.say_wait("Please provide the Subject of the email")
+            userEmailSubject = GSTT.getSpeechToText()
+            print("Okay, opening new email")
+            winspeech.say("Please wait while opening new email")
+            OCH.CreateEmail(recipient["email"],userEmailSubject)
             
     
     except Exception as e:
         print("Error in show create mail "+str(e))
-

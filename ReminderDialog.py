@@ -100,7 +100,7 @@ def CreateReminderDialog(output):
         winspeech.say_wait("ok, dismissing it")
 
 
-#======================================================================================
+#================================================================================================================================
 
 reminderNativeAppPath = r"C:\Users\accenture.robotics\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\buddy.lnk"
 

@@ -1,62 +1,13 @@
 import win32com.client
-import WriteToFile as WF
-from difflib import SequenceMatcher
 import win32com.client as comclt
 import win32com.client as win32
 import time
 import speech_recognition as sr
 from pynput.keyboard import Key, Controller
+import os
 
 keyboard = Controller()
 MailWrite = True
-
-def similar(a, b):
-    return SequenceMatcher(None, a, b).ratio()
-
-def RemoveDuplicates(duplicate): 
-    final_list = [] 
-    for num in duplicate: 
-        if num not in final_list: 
-            final_list.append(num) 
-    return final_list
-
-def CreateEmailDB():
-    outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
-
-    inbox = outlook.GetDefaultFolder(6) # "6" refers to the index of a folder - in this case,
-                                        # the inbox. You can change that number to reference
-                                        # any other folder
-    messages = inbox.Items
-
-    EmailList = []
-    for msg in messages:
-        if msg.Class==43:
-                EmailNamePair = {}
-                
-                if msg.SenderEmailType=='EX':
-                    EmailNamePair["email"] = msg.Sender.GetExchangeUser().PrimarySmtpAddress
-                    EmailNamePair["name"] = msg.Sender.GetExchangeUser().PrimarySmtpAddress.split('@')[0]
-                else:
-                    EmailNamePair["email"] = msg.SenderEmailAddress
-                    EmailNamePair["name"] = msg.SenderEmailAddress.split('@')[0]
-
-                EmailList.append(EmailNamePair)
-
-    WF.WriteToFile(RemoveDuplicates(EmailList),"outlookemail.json")
-#CreateEmailDB()
-def CheckEmailMatch(userInput):
-    data = WF.ReadFromFile("outlookemail.json")
-    topMatch = {}
-    topMatchPercent = 0
-    for email in data:
-        matchingScore = similar(userInput, email["name"])
-        
-        if matchingScore > topMatchPercent:
-            topMatchPercent = matchingScore
-            email["score"] = matchingScore
-            topMatch = email
-
-    return topMatch
 
 def StartDictation(mail):
     wsh= comclt.Dispatch("WScript.Shell")
@@ -90,13 +41,12 @@ def StartDictation(mail):
                 MailWrite = False
             else:
                 wsh.SendKeys(textResponse+" ")
-                #MailWrite = False
-
+                MailWrite = False
+            
         except sr.UnknownValueError:
-             print("Google Speech Recognition could not understand audio")
-        
+            print("Google Speech Recognition could not understand audio")
         except sr.RequestError as e:
-             print("Could not request results from Google Speech Recognition service; {0}".format(e))
+            print("Could not request results from Google Speech Recognition service; {0}".format(e))
 
 
     r = sr.Recognizer()
@@ -109,7 +59,9 @@ def StartDictation(mail):
     # `stop_listening` is now a function that, when called, stops background listening
 
     # do some unrelated computations for 5 seconds
-    while MailWrite: time.sleep(0.1)  # we're still listening even though the main thread is doing other things
+    while MailWrite: 
+        time.sleep(0.1)  # we're still listening even though the main thread is doing other things
+        #print("loop")
 
     # calling this function requests that the background listener stop listening
     stop_listening(wait_for_stop=False)
@@ -120,11 +72,15 @@ def StartDictation(mail):
 
 def CreateEmail(toAddress,subject):
     outlook = win32.Dispatch('outlook.application')
+    
     mail = outlook.CreateItem(0)
     mail.To = toAddress
     mail.Subject = subject
     #mail.Body = 'Message body'
     #mail.HTMLBody = '' #this field is optional
+    print(mail)
     mail.Display()
+    print(os.getpid())
     StartDictation(mail)
-    
+
+CreateEmail("kingsuk.majumder@accenture.com","Demo Subject")
